@@ -1,0 +1,120 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>贝叶斯分类器应用于短信识别 | cescme</title><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/5.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/grids-responsive-min.css"><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">贝叶斯分类器应用于短信识别</h1><a id="logo" href="/.">cescme</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a></div></div><div id="layout" class="pure-g"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">贝叶斯分类器应用于短信识别</h1><div class="post-meta">Dec 1, 2016<span> | </span><span class="category"><a href="/categories/算法/">算法</a></span><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><span id="busuanzi_container_page_pv"> | <span id="busuanzi_value_page_pv"></span><span> Hits</span></span></div><a data-thread-key="2016/12/01/朴素贝叶斯分类器应用于短信识别/" href="/2016/12/01/朴素贝叶斯分类器应用于短信识别/#comments" class="ds-thread-count"></a><div class="post-content"><h3 id="原理简述"><a href="#原理简述" class="headerlink" title="原理简述"></a>原理简述</h3><p>自贝叶斯定理诞生起，其广泛应用于概率推理领域。贝叶斯定理揭示出自然界一个普遍规律，即两个概率事件之间的联系不是单向的，贝叶斯定理及其公式提出一种处理这种联系的方法论，以至于我们在各个应用领域都可以实践。贝叶斯公式如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">P(A|B)=P(B|A)P(A)/P(B)</div></pre></td></tr></table></figure>
+<p>现分别有 A，B 两个容器：<br>在容器 A 里分别有 7 个红球和 3 个白球，<br>在容器 B 里有 1 个红球和 9 个白球，<br>现已知从这两个容器里任意抽出了一个球，且是红球，<br>问这个红球是来自容器 A 的概率是多少? 　　</p>
+<p>假设已经抽出红球为事件 B，从容器 A 里抽出球为事件 A，则有：<br>P(B)=8/20，P(A)=1/2，P(B|A)=7/10，<br>按照公式，则有：P(A|B)=P(B|A)*P(A)/P(B)=(7/10)*(1/2)*(20/8)=7/8 </p>
+<p>上述为单一结果集的情况，利用先验概率和条件概率，我们能够反推出在结果集确定的情况下，导致结果集的可能的多个起因的概率，以确定最可能的起因。</p>
+<h3 id="要处理的问题"><a href="#要处理的问题" class="headerlink" title="要处理的问题"></a>要处理的问题</h3><blockquote>
+<p>您的账户9572于2013-01-24 16:35:26跨行支付人民币280000.00元，当前余额1023800.40元【中国银行】 </p>
+</blockquote>
+<p>上述这条短信内容大家手机里类似的很多，我们有没有可能把他们抓出来分析一下，给自己做个银行交易记录的流水账呢？比如哪张银行卡，什么时间，收入或支出多少，目前余额多少等。</p>
+<p>好吧，这个简单。正则匹配吧，建立一个个正则式模板，分段提取出需要的信息，这不失为一个有效办法，但其不足有二：</p>
+<ul>
+<li>建立大规模的正则式库，逐一匹配，匹配效率低</li>
+<li>正则式需要人工添加，维护成本高</li>
+</ul>
+<p>好吧，我承认下文的处理方案任然脱离不了正则式，但可以极大减小维护成本。</p>
+<h3 id="正则式能解决什么"><a href="#正则式能解决什么" class="headerlink" title="正则式能解决什么"></a>正则式能解决什么</h3><p>经过对大量此类短信的分析，我们可以发现，银行名称，交易时间、交易金额等格式种类有限，可以提供几个比较通用的正则式来提取。目前困难的是怎么区分出交易的类型呢，是收入还是支出？不要忘了，手机里收到的银行短信可不都是这种交易短信，还有大量广告、验证码等短信，如何把这些干扰（或称垃圾）短信区分出来。继续用正则式，那我们需要维护多个词组，确定各自对应的类型。汉语词汇万千，即使此类短信词汇集合大小有限，但多个词的组合数可就是天文数字了，靠纯人工恐怕是玩不转了。</p>
+<h3 id="我的解决方案"><a href="#我的解决方案" class="headerlink" title="我的解决方案"></a>我的解决方案</h3><p>关键正则提取关键信息–&gt;分词过滤–&gt;贝叶斯分类器</p>
+<h4 id="关键正则提取关键信息"><a href="#关键正则提取关键信息" class="headerlink" title="关键正则提取关键信息"></a>关键正则提取关键信息</h4><p>利用正则式提取出时间、金额等信息，并从短信中剔除</p>
+<h4 id="分词过滤"><a href="#分词过滤" class="headerlink" title="分词过滤"></a>分词过滤</h4><p>分词技术由来已久，中文分词也是自然语言处理中一个核心领域。中文由字构成，字成词，字数虽然有限，但字的组合数十分庞大。再加上汉字书写中词间不留空格的习惯，在分词领域，汉字的难度比字母文字大得多。</p>
+<p>从最初的机械匹配分词，到基于语法分词，到现在的深度学习，分词技术突飞猛进。科大讯飞、哈工大等单位目前在该领域技术雄厚，大家可以去搜索查阅。由于分词技术不是本文重点，就此略过。分词需要达到的目的是将短信句子分成词组，再通过词性判断，仅保留名词、动词，因为这些词汇具有业务性，包含了对短信分类判断的概率依据。</p>
+<p>经过以上处理，假设只剩下跨行、支付、人民币三个词汇。</p>
+<h4 id="贝叶斯分类器"><a href="#贝叶斯分类器" class="headerlink" title="贝叶斯分类器"></a>贝叶斯分类器</h4><ul>
+<li>推理过程</li>
+</ul>
+<p>朴素贝叶斯：单词出现概率相互独立 P(AB) = P(A)P(B)</p>
+<p>推理结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">R = argmax𝑃(𝐾|𝑇𝑗)𝑃(𝑇𝑗), 𝑇𝑗∈𝑇</div></pre></td></tr></table></figure>
+<p>单词集合 K:{ 跨行–KH，支付–ZF，人民币–RMB }</p>
+<p>类型 T：收入–S    支出–Z    垃圾-R</p>
+<p>根据训练样本（训练样本集需要事先准备好，训练基数足够大，如提前对一批短信进行类型人工识别）</p>
+<p>得到T先验概率：P(T)=训练样本中类型为T的短信数目/训练样本短信总数</p>
+<p>假设：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">P(T=S) = 0.2</div><div class="line">P(T=Z) = 0.2</div><div class="line">P(T=R) = 0.6</div></pre></td></tr></table></figure>
+<p>条件概率：P(K|T) = T类型短信中出现K单词的短信数目/ T类型短信总数</p>
+<p>假设：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">P(KH|S) = 0.021</div><div class="line">P(ZF|S)=0.0002</div><div class="line">P(RMB|S)=0.3</div><div class="line"></div><div class="line">P(KH|Z) = 0.032</div><div class="line">P(ZF|Z)=0.25</div><div class="line">P(RMB|Z)=0.32</div><div class="line"></div><div class="line">P(KH|R) = 0.012</div><div class="line">P(ZF|R)=0.022</div><div class="line">P(RMB|R)=0.33</div></pre></td></tr></table></figure>
+<p>则</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">P(S|K) = P(S|KH, ZF, RMB) = P(KH, ZF, RMB|S)P(S)/P(KH, ZF, RMB) = C * P(KH|S)P(ZF|S)P(RMB|S)*P(S)=C*0.021*0.0002*0.3*0.2=2.52E-7*C</div><div class="line"></div><div class="line">P(Z|K) = P(Z|KH, ZF, RMB) = P(KH, ZF, RMB|Z)P(Z)/P(KH, ZF, RMB) = C * P(KH|Z)P(ZF|Z)P(RMB|Z)*P(Z)=C*0.032*0.25*0.32*0.2=5.12E-4*C</div><div class="line"></div><div class="line">P(R|K) = P(R|KH, ZF, RMB) = P(KH, ZF, RMB|R)P(R)/P(KH, ZF, RMB) = C * P(KH|R)P(ZF|R)P(RMB|R)*P(R)=C*0.012*0.022*0.33*0.6=5.23E-5*C</div></pre></td></tr></table></figure>
+<p>三者中P(Z|K)最大，则该条短信判为支出</p>
+<ul>
+<li>推理改进</li>
+</ul>
+<p>假设出现一个新单词，训练样本中并未出现（词典中不存在），若继续按以上步骤进行，则出现条件概率为0的情况，此时计算结果均为0，无法进行大小判断。</p>
+<p>M估计</p>
+<pre><code>P(K|T) = (N𝐾 + mp)/(N + m)
+</code></pre><p>N是T类型短信总数，N𝐾是T类型中K单词出现次数，m成为等价样本大小的参数，而p是用户指定的参数。如果没有训练集(即N=0)，则P(K|T)=p, 因此p可以看作是在类型T的短信样本中观察单词K的先验概率。等价样本m大小决定先验概率p和观测概率N𝐾/N之间的平衡</p>
+<p>多项式模型</p>
+<p>先验概率P(T) = T类型短信中单词统计总数/全部短信中单词统计总数</p>
+<p>条件概率P(K|T)=(T类型短信中单词K统计总数 +1)/(T类型短信中单词统计总数+|V|)</p>
+<p>V是训练样本的单词表（即抽取单词，单词出现多次，只算一个），|V|则表示训练样本包含多少种单词。</p>
+<p>在这里，m=|V|, p=1/|V|</p>
+<ul>
+<li>训练集存储</li>
+</ul>
+<p>数据表结构如下所示</p>
+<p>短信类型计数表</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>单词总量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收入</td>
+<td>12</td>
+</tr>
+<tr>
+<td>支出</td>
+<td>13</td>
+</tr>
+<tr>
+<td>垃圾</td>
+<td>23</td>
+</tr>
+</tbody>
+</table>
+<p>单词计数表</p>
+<table>
+<thead>
+<tr>
+<th>单词</th>
+<th>收入短信中该单词出现次数</th>
+<th>支出短信中该单词出现次数</th>
+<th>垃圾短信中该单词出现次数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>消费</td>
+<td>12</td>
+<td>12</td>
+<td>32</td>
+</tr>
+<tr>
+<td>工资</td>
+<td>123</td>
+<td>2</td>
+<td>12</td>
+</tr>
+<tr>
+<td>转账</td>
+<td>23</td>
+<td>32</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p>整个识别流程介绍完毕，主要是理论上的。在实际运用中还需结合实际情况改进具体流程。</p>
+</div><script type="text/javascript" src="/js/share.js?v=0.0.1" async></script><a data-url="http://yoursite.com/2016/12/01/朴素贝叶斯分类器应用于短信识别/" data-id="ciwhyfq2d00098orvoya8xs1w" class="article-share-link">分享到</a><div class="tags"><a href="/tags/贝叶斯分类器/">贝叶斯分类器</a><a href="/tags/短信识别/">短信识别</a></div><div class="post-nav"><a href="/2016/12/02/dubbo filter链实现逻辑/" class="pre">dubbo filter链实现逻辑</a><a href="/2016/11/30/tbschedule定时任务框架使用简述/" class="next">tbschedule定时任务框架使用简述</a></div><div data-thread-key="2016/12/01/朴素贝叶斯分类器应用于短信识别/" data-title="贝叶斯分类器应用于短信识别" data-url="http://yoursite.com/2016/12/01/朴素贝叶斯分类器应用于短信识别/" class="ds-share flat"><div class="ds-share-inline"><ul class="ds-share-icons-16"><li data-toggle="ds-share-icons-more"><a href="javascript:void(0);" class="ds-more">分享到：</a></li><li><a href="javascript:void(0);" data-service="weibo" class="ds-weibo">微博</a></li><li><a href="javascript:void(0);" data-service="qzone" class="ds-qzone">QQ空间</a></li><li><a href="javascript:void(0);" data-service="qqt" class="ds-qqt">腾讯微博</a></li><li><a href="javascript:void(0);" data-service="wechat" class="ds-wechat">微信</a></li></ul><div class="ds-share-icons-more"></div></div></div><div data-thread-key="2016/12/01/朴素贝叶斯分类器应用于短信识别/" data-title="贝叶斯分类器应用于短信识别" data-url="http://yoursite.com/2016/12/01/朴素贝叶斯分类器应用于短信识别/" data-author-key="1" class="ds-thread"></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/JAVA/">JAVA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/工具/">工具</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/并发编程/">并发编程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/框架/">框架</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/算法/">算法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/tbschedule/" style="font-size: 15px;">tbschedule</a> <a href="/tags/CAS/" style="font-size: 15px;">CAS</a> <a href="/tags/DUBBO/" style="font-size: 15px;">DUBBO</a> <a href="/tags/装饰器模式/" style="font-size: 15px;">装饰器模式</a> <a href="/tags/sublime/" style="font-size: 15px;">sublime</a> <a href="/tags/markdown/" style="font-size: 15px;">markdown</a> <a href="/tags/并发/" style="font-size: 15px;">并发</a> <a href="/tags/定时调度/" style="font-size: 15px;">定时调度</a> <a href="/tags/微信/" style="font-size: 15px;">微信</a> <a href="/tags/Auth2/" style="font-size: 15px;">Auth2</a> <a href="/tags/贝叶斯分类器/" style="font-size: 15px;">贝叶斯分类器</a> <a href="/tags/短信识别/" style="font-size: 15px;">短信识别</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/12/08/微信网页授权登录流程实现方案/">微信网页授权登录流程实现方案</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/06/CAS原理应用于配置信息懒加载/">CAS原理应用于配置信息懒加载</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/02/dubbo filter链实现逻辑/">dubbo filter链实现逻辑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/01/朴素贝叶斯分类器应用于短信识别/">贝叶斯分类器应用于短信识别</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/11/30/tbschedule定时任务框架使用简述/">tbschedule定时任务框架使用简述</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/11/30/sublime text 3 进行markdown编辑和预览 /">sublime text 3 进行markdown编辑和预览</a></li></ul></div><div class="widget"><div class="comments-title"><i class="fa fa-comment-o"> 最近评论</i></div><div data-num-items="5" data-show-avatars="0" data-show-time="1" data-show-admin="0" data-excerpt-length="32" data-show-title="1" class="ds-recent-comments"></div></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="https://github.com/cescme" title="我的github" target="_blank">我的github</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">cescme.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.1" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.1" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.1"><script>var duoshuoQuery = {short_name:'cescme'};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.1"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.1"></script></div></body></html>
