@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>利用hexo搭建个人博客 | cescme</title><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/5.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/grids-responsive-min.css"><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.1"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">利用hexo搭建个人博客</h1><a id="logo" href="/.">cescme</a><p class="description"></p></div><div id="nav-menu"><a href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a></div></div><div id="layout" class="pure-g"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">利用hexo搭建个人博客</h1><div class="post-content"><p>昨天利用hexo、github成功搭建了个人博客，将之前写的md格式的文章发布，感觉效果不错。这里简单记录下整个搭建过程，如果以后换电脑的话做个参考，如果大家看到了也可以顺着步骤一起实践，体验一下现下流行的基于github构建静态博客的酷炫过程。</p>
+<ol>
+<li>安装</li>
+</ol>
+<ul>
+<li>首先安装node.js，这个比较简单</li>
+<li>打开git bash命令行</li>
+<li><p>由于自带npm不稳定，建议安装淘宝npm镜像</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ npm install -g cnpm --registry=https://registry.npm.taobao.org</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装hexo</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ cnpm install hexo-cli -g</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这时候hexo会默认安装在c盘，大家可以自行调整安装路径</p>
+<ol>
+<li>hexo配置</li>
+</ol>
+<ul>
+<li><p>初始化，新建一个blog目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ mkdir blog</div><div class="line">$ <span class="built_in">cd</span> blog</div><div class="line">$ hexo init</div></pre></td></tr></table></figure>
+</li>
+<li><p>新建文章test</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo new <span class="string">'test'</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>预览</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo server</div></pre></td></tr></table></figure>
+</li>
+<li><p>打开浏览器，进入地址localhost:4000，即可预览整体博客和test文章</p>
+</li>
+</ul>
+<ol>
+<li>github配置</li>
+</ol>
+<ul>
+<li>新建一个仓库，如我们的用户名是abc，则仓库名称必须为abc.github.io</li>
+<li>到仓库中的settings–github pages–sources，将master分支作为博客的提供分支，并保存</li>
+<li>打开blog目录的_config.yml，配置github地址<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">deploy:</div><div class="line">  type: git</div><div class="line">  repository: git@github.com:abc/abc.github.io.git # abc为github用户名</div><div class="line">  branch: master</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<ol>
+<li>内容发布</li>
+</ol>
+<ul>
+<li><p>发布前首先清理</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo clean</div></pre></td></tr></table></figure>
+</li>
+<li><p>生成文章。public目录能看到生成的前端代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo generate</div></pre></td></tr></table></figure>
+</li>
+<li><p>发布，将代码推送到github远程库的master分支</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo deploy</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>此时，查看github，确认代码已提交，打开<br><a href="https://abc.github.io" target="_blank" rel="external">https://abc.github.io</a><br>即可看到hexo博客。</p>
+<p><em>附</em>：使用maupassant主题</p>
+<p>hexo有很多开源的主题，大家可以自行安转并切换配置</p>
+<p>maupassant是一款极简主义的主题，并不酷炫，但简约朴实，一下就抓住我的心。现将其安装过程记录下来</p>
+<ul>
+<li>安装python2.7</li>
+<li><p>切换到blog目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ git <span class="built_in">clone</span> https://github.com/tufu9441/maupassant-hexo.git themes/maupassant</div><div class="line">$ cnpm install hexo-renderer-jade --save</div><div class="line">$ cnpm install hexo-renderer-sass --save</div></pre></td></tr></table></figure>
+</li>
+<li><p>主题配置，修改blog/_config.yml文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">theme: maupassant</div></pre></td></tr></table></figure>
+</li>
+<li><p>blog/themes/maupassant/_config.yml配置文件中提供主题的相关配置</p>
+</li>
+</ul>
+</div></div><div data-thread-key="cmd_backup/利用hexo搭建个人博客.html" data-title="利用hexo搭建个人博客" data-url="http://yoursite.com/cmd_backup/利用hexo搭建个人博客.html" data-author-key="1" class="ds-thread"></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/协议/">协议</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/工具/">工具</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/并发编程/">并发编程</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/框架/">框架</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/算法/">算法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/装饰器模式/" style="font-size: 15px;">装饰器模式</a> <a href="/tags/CAS/" style="font-size: 15px;">CAS</a> <a href="/tags/dubbo/" style="font-size: 15px;">dubbo</a> <a href="/tags/tbschedule/" style="font-size: 15px;">tbschedule</a> <a href="/tags/定时调度/" style="font-size: 15px;">定时调度</a> <a href="/tags/sublime/" style="font-size: 15px;">sublime</a> <a href="/tags/markdown/" style="font-size: 15px;">markdown</a> <a href="/tags/金额/" style="font-size: 15px;">金额</a> <a href="/tags/DUBBO/" style="font-size: 15px;">DUBBO</a> <a href="/tags/并发/" style="font-size: 15px;">并发</a> <a href="/tags/微信/" style="font-size: 15px;">微信</a> <a href="/tags/Auth2/" style="font-size: 15px;">Auth2</a> <a href="/tags/hexo/" style="font-size: 15px;">hexo</a> <a href="/tags/博客/" style="font-size: 15px;">博客</a> <a href="/tags/日志/" style="font-size: 15px;">日志</a> <a href="/tags/redis/" style="font-size: 15px;">redis</a> <a href="/tags/贝叶斯分类器/" style="font-size: 15px;">贝叶斯分类器</a> <a href="/tags/短信识别/" style="font-size: 15px;">短信识别</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/12/26/对金额占比展示的巧妙处理方案/">对金额占比展示的巧妙处理方案</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/21/记一次使用redis发布订阅遇到的坑/">记一次使用redis发布订阅遇到的坑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/20/dubbo的扩展机制/">dubbo的扩展机制</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/19/dubbo应用配置logback日志/">dubbo应用配置logback日志</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/10/利用hexo搭建个人博客/">利用hexo搭建个人博客</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/08/微信网页授权登录流程实现方案/">微信网页授权登录流程实现方案</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/06/CAS原理应用于配置信息懒加载/">CAS原理应用于配置信息懒加载</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/02/dubbo filter链实现逻辑/">dubbo filter链实现逻辑</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/12/01/朴素贝叶斯分类器应用于短信识别/">贝叶斯分类器应用于短信识别</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/11/30/tbschedule定时任务框架使用简述/">tbschedule定时任务框架使用简述</a></li></ul></div><div class="widget"><div class="comments-title"><i class="fa fa-comment-o"> 最近评论</i></div><div data-num-items="5" data-show-avatars="0" data-show-time="1" data-show-admin="0" data-excerpt-length="32" data-show-title="1" class="ds-recent-comments"></div></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="https://github.com/cescme" title="我的github" target="_blank">我的github</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">cescme.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.1" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.1" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.1"><script>var duoshuoQuery = {short_name:'cescme'};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.1"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.1"></script></div></body></html>
